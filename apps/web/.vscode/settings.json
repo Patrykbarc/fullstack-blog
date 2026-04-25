@@ -1,0 +1,29 @@
+{
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"[astro]": {
+		"editor.defaultFormatter": "astro-build.astro-vscode"
+	},
+	"[mdx]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true,
+	"emmet.includeLanguages": {
+		"astro": "html"
+	},
+	"files.associations": {
+		"*.astro": "astro"
+	},
+	"files.eol": "\n",
+	"prettier.documentSelectors": ["**/*.astro"]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "fullstack-blog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:web": "pnpm --filter @monorepo/web run dev",
+    "format": "pnpm -r run format",
+    "format:check": "pnpm -r run format:check",
+    "lint": "pnpm -r run lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.1"
+}
