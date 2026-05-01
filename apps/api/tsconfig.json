@@ -1,0 +1,15 @@
+{
+	"extends": "@monorepo/tsconfig/base.json",
+	"compilerOptions": {
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"declaration": true,
+		"removeComments": true,
+		"sourceMap": true,
+		"incremental": true,
+		"outDir": "./dist",
+		"noImplicitAny": false,
+		"strictBindCallApply": false,
+		"types": ["jest"]
+	}
+}
