@@ -10,6 +10,6 @@
 		"outDir": "./dist",
 		"noImplicitAny": false,
 		"strictBindCallApply": false,
-		"types": ["jest"]
+		"types": ["jest", "node"]
 	}
 }
