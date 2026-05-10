@@ -1,7 +1,7 @@
 // @ts-check
-import baseConfig, { globals, tseslint } from '@monorepo/eslint-config';
+import baseConfig, { defineConfig, globals, tseslint } from '@monorepo/eslint-config';
 
-export default tseslint.config(
+export default defineConfig(
 	{
 		ignores: ['eslint.config.mjs', '.prettierrc.mjs', 'dist/**'],
 	},
