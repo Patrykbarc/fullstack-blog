@@ -1,32 +1,38 @@
 {
-  "name": "@monorepo/schemas",
-  "version": "0.0.1",
-  "private": true,
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@monorepo/tsconfig": "workspace:*",
-    "tsdown": "catalog:",
-    "typescript": "catalog:"
-  }
+	"name": "@monorepo/schemas",
+	"version": "0.0.1",
+	"description": "",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@monorepo/eslint-config": "workspace:*",
+		"@monorepo/prettier-config": "workspace:*",
+		"@monorepo/tsconfig": "workspace:*",
+		"eslint": "^9.18.0",
+		"prettier": "^3.4.2",
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
+	}
 }
