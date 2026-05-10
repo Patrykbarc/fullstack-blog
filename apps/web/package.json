@@ -20,6 +20,7 @@
 		"@astrojs/mdx": "^5.0.4",
 		"@astrojs/rss": "^4.0.18",
 		"@astrojs/sitemap": "^3.7.2",
+		"@monorepo/schemas": "workspace:*",
 		"astro": "^6.1.9",
 		"sharp": "^0.34.3"
 	},
@@ -31,6 +32,6 @@
 		"eslint": "^9.17.0",
 		"prettier": "^3.3.3",
 		"prettier-plugin-astro": "^0.14.1",
-		"typescript": "^5.7.3"
+		"typescript": "catalog:"
 	}
 }
