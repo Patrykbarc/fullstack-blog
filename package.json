@@ -6,7 +6,7 @@
   "scripts": {
     "dev:web": "pnpm --filter @monorepo/web run dev",
     "dev:api": "pnpm --filter @monorepo/api run dev",
-    "dev": "pnpm --recursive --parallel run dev",
+    "dev": "pnpm --filter \"./packages/**\" run build && pnpm --recursive --parallel run dev",
     "build": "pnpm -r run build",
     "format": "pnpm -r run format",
     "format:check": "pnpm -r run format:check",
