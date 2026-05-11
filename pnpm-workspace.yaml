@@ -1,8 +1,8 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - apps/*
+  - packages/*
 
 catalog:
   tsdown: ^0.9.0
   typescript: ^5.7.3
-  zod: ^3.23.8
+  zod: ^3.25.76
