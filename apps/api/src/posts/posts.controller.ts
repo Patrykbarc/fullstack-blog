@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { PostsService } from './posts.service';
+import { CreatePostDto } from './dto/createPost.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -12,11 +13,16 @@ export class PostsController {
 
 	@Get('/search')
 	getPostByTitle(@Query('title') title: string) {
-		return this.postsService.getProductByTitle(title);
+		return this.postsService.getPostByTitle(title);
 	}
 
 	@Get('/:id')
 	getPostById(@Param('id') id: string) {
-		return this.postsService.getProductById(id);
+		return this.postsService.getPostById(id);
+	}
+
+	@Post()
+	createPost(@Body() post: CreatePostDto) {
+		return this.postsService.createPost(post);
 	}
 }
