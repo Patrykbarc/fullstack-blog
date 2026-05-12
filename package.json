@@ -6,7 +6,9 @@
   "scripts": {
     "dev:web": "pnpm --filter @monorepo/web run dev",
     "dev:api": "pnpm --filter @monorepo/api run dev",
-    "dev": "pnpm --filter \"./packages/**\" run build && pnpm --recursive --parallel run dev",
+    "pkg:build": "pnpm --filter \"./packages/**\" run build",
+    "gen:env": "tsx packages/env-schema/src/cli-entry.ts",
+    "dev": "pnpm run pkg:build && pnpm --recursive --parallel run dev",
     "build": "pnpm -r run build",
     "format": "pnpm -r run format",
     "format:check": "pnpm -r run format:check",
@@ -22,6 +24,7 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "plop": "^4.0.5",
+    "tsx": "^4.21.0",
     "typescript": "catalog:"
   }
 }

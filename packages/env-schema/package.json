@@ -1,0 +1,53 @@
+{
+	"name": "@monorepo/env-schema",
+	"version": "0.0.1",
+	"description": "Generates a typed, Zod-validated TypeScript file from your .env. Run once to get autocomplete, runtime validation, and a synced .env.template.",
+	"private": true,
+	"type": "module",
+	"bin": {
+		"env-schema": "./dist/cli.cjs"
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"postbuild": "chmod +x dist/cli.cjs",
+		"dev": "tsdown --watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"inquirer": "^10.0.0"
+	},
+	"peerDependencies": {
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@monorepo/eslint-config": "workspace:*",
+		"@monorepo/prettier-config": "workspace:*",
+		"@monorepo/tsconfig": "workspace:*",
+		"@types/node": "catalog:types",
+		"eslint": "^9.18.0",
+		"prettier": "^3.4.2",
+		"tsdown": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "^1.0.0",
+		"zod": "catalog:"
+	}
+}
