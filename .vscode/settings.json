@@ -1,4 +1,11 @@
 {
 	"js/ts.tsdk.path": "node_modules/typescript/lib",
-	"js/ts.tsdk.promptToUseWorkspaceVersion": true
+	"js/ts.tsdk.promptToUseWorkspaceVersion": true,
+	"eslint.workingDirectories": [
+		{ "pattern": "apps/*" },
+		{ "pattern": "packages/*" }
+	],
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	}
 }
