@@ -13,7 +13,7 @@
 	"[jsonc]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
-	"typescript.tsdk": "node_modules/typescript/lib",
-	"typescript.enablePromptUseWorkspaceTsdk": true,
+	"ts.tsdk": "node_modules/typescript/lib",
+	"ts.tsdk.promptToUseWorkspaceVersion": true,
 	"files.eol": "\n"
 }

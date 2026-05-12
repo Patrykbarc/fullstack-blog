@@ -1,11 +1,14 @@
 {
-	"js/ts.tsdk.path": "node_modules/typescript/lib",
-	"js/ts.tsdk.promptToUseWorkspaceVersion": true,
-	"eslint.workingDirectories": [
-		{ "pattern": "apps/*" },
-		{ "pattern": "packages/*" }
-	],
-	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit"
-	}
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "eslint.probe": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
 }
