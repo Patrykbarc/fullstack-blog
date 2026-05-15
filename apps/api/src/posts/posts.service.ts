@@ -3,6 +3,7 @@ import type { Post } from '@monorepo/schemas';
 import { CreatePostDto } from './dto/createPost.dto';
 import { v4 as uuidv4 } from 'uuid';
 import slugify from 'slugify';
+import { UpdatePostDto } from './dto/updatePost.dto';
 
 const TODAY = new Date(Date.now());
 const YESTERDAY = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -80,5 +81,30 @@ export class PostsService {
 		this.posts.push(newPost);
 
 		return newPost;
+	}
+
+	updatePost(id: Post['id'], dto: UpdatePostDto): Post {
+		const post = this.posts.find((post) => id === post.id);
+		if (!post) {
+			throw new NotFoundException('Post not found');
+		}
+
+		const slug = dto.title && !dto.slug ? slugify(dto.title).toLocaleLowerCase() : dto.slug;
+
+		Object.assign(post, dto, {
+			...(slug !== undefined && { slug }),
+			updatedAt: new Date(),
+		});
+
+		return post;
+	}
+
+	deletePost(id: Post['id']) {
+		const index = this.posts.findIndex((post) => post.id === id);
+		if (index === -1) {
+			throw new NotFoundException('Post not found');
+		}
+
+		this.posts.splice(index, 1);
 	}
 }
