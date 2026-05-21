@@ -1,0 +1,11 @@
+{
+	"extends": "@monorepo/tsconfig/base.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"declaration": true,
+		"module": "preserve",
+		"moduleResolution": "bundler"
+	},
+	"include": ["src"]
+}

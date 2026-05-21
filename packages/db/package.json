@@ -1,0 +1,49 @@
+{
+	"name": "@monorepo/db",
+	"version": "0.0.1",
+	"description": "Drizzle ORM schema and client for the blog Postgres database",
+	"private": true,
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"drizzle"
+	],
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"dev": "tsc -p tsconfig.build.json --watch",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "tsx src/migrate.ts",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
+		"db:seed": "tsx src/seed.ts",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"drizzle-orm": "^0.36.4",
+		"postgres": "^3.4.5",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@monorepo/eslint-config": "workspace:*",
+		"@monorepo/prettier-config": "workspace:*",
+		"@monorepo/tsconfig": "workspace:*",
+		"@types/node": "catalog:types",
+		"dotenv": "^16.4.7",
+		"drizzle-kit": "^0.30.1",
+		"eslint": "^9.18.0",
+		"prettier": "^3.4.2",
+		"tsx": "^4.21.0",
+		"typescript": "catalog:"
+	}
+}
