@@ -1,9 +1,23 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Param,
+	Patch,
+	Post,
+	Query,
+	UseGuards,
+} from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { Post as PostSchema } from '@monorepo/schemas';
+import { ApiKeyGuard } from '../api-key/api-key.guard';
 
+@UseGuards(ApiKeyGuard)
 @Controller('posts')
 export class PostsController {
 	constructor(private readonly postsService: PostsService) {}
@@ -33,7 +47,7 @@ export class PostsController {
 		return this.postsService.updatePost(id, dto);
 	}
 
-	@HttpCode(204)
+	@HttpCode(HttpStatus.NO_CONTENT)
 	@Delete('/:id')
 	deletePost(@Param('id') id: PostSchema['id']) {
 		return this.postsService.deletePost(id);
