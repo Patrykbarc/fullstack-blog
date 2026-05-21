@@ -10,7 +10,6 @@
 		"outDir": "./dist",
 		"noImplicitAny": false,
 		"strictBindCallApply": false,
-		"noEmit": true,
 		"types": ["jest", "node"]
 	}
 }

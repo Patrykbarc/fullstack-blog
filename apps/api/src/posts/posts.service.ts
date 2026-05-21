@@ -1,110 +1,107 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Post } from '@monorepo/schemas';
-import { CreatePostDto } from './dto/createPost.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { posts, type PostRow, type Db } from '@monorepo/db';
+import { eq, ilike } from 'drizzle-orm';
 import slugify from 'slugify';
+import { DB } from '../db/db.module';
+import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
-
-const TODAY = new Date(Date.now());
-const YESTERDAY = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
 @Injectable()
 export class PostsService {
 	private readonly authorId = 'fb037077-5289-4149-a68f-1fa7af3e3c2e';
 	private readonly authorName = 'Patryk';
 
-	private posts: Post[] = [
-		{
-			id: uuidv4(),
-			title: 'First post',
-			slug: 'first-post',
-			description: 'Short description of the first post.',
-			content: 'Content of the first post.',
-			tags: [],
-			published: true,
-			pubDate: YESTERDAY,
-			createdAt: YESTERDAY,
-			updatedAt: null,
-			author: { id: this.authorId, name: this.authorName },
-		},
-		{
-			id: uuidv4(),
-			title: 'Second post',
-			slug: 'second-post',
-			description: 'Short description of the second post.',
-			content: 'Content of the second post.',
-			tags: [],
-			published: true,
-			pubDate: TODAY,
-			createdAt: TODAY,
-			updatedAt: null,
-			author: { id: this.authorId, name: this.authorName },
-		},
-	];
+	constructor(@Inject(DB) private readonly db: Db) {}
 
-	getAllPosts() {
-		return this.posts;
+	async getAllPosts(): Promise<Post[]> {
+		const rows = await this.db.select().from(posts);
+		return rows.map(toPost);
 	}
 
-	getPostById(id: string) {
-		const post = this.posts.find((post) => post.id === id);
-		if (!post) {
+	async getPostById(id: string): Promise<Post> {
+		const [row] = await this.db.select().from(posts).where(eq(posts.id, id)).limit(1);
+		if (!row) {
 			throw new NotFoundException('Post not found');
 		}
-
-		return post;
+		return toPost(row);
 	}
 
-	getPostByTitle(title: string) {
-		const post = this.posts.find(
-			(post) => post.title.toLocaleLowerCase() === title.toLocaleLowerCase(),
-		);
-		if (!post) {
+	async getPostByTitle(title: string): Promise<Post> {
+		const [row] = await this.db.select().from(posts).where(ilike(posts.title, title)).limit(1);
+		if (!row) {
 			throw new NotFoundException('Post not found');
 		}
-
-		return post;
+		return toPost(row);
 	}
 
-	createPost(dto: CreatePostDto): Post {
-		const now = new Date();
-		const newPost: Post = {
-			id: uuidv4(),
-			slug: dto.slug ?? slugify(dto.title).toLocaleLowerCase(),
-			pubDate: dto.pubDate ?? now,
-			createdAt: now,
-			updatedAt: null,
-			author: { id: this.authorId, name: this.authorName },
-			...dto,
-		};
-
-		this.posts.push(newPost);
-
-		return newPost;
-	}
-
-	updatePost(id: Post['id'], dto: UpdatePostDto): Post {
-		const post = this.posts.find((post) => id === post.id);
-		if (!post) {
+	async getPostBySlug(slug: string): Promise<Post> {
+		const [row] = await this.db.select().from(posts).where(eq(posts.slug, slug)).limit(1);
+		if (!row) {
 			throw new NotFoundException('Post not found');
 		}
+		return toPost(row);
+	}
 
+	async createPost(dto: CreatePostDto): Promise<Post> {
+		const slug = dto.slug ?? slugify(dto.title).toLocaleLowerCase();
+		const [row] = await this.db
+			.insert(posts)
+			.values({
+				title: dto.title,
+				slug,
+				description: dto.description,
+				content: dto.content,
+				heroImage: dto.heroImage,
+				tags: dto.tags ?? [],
+				published: dto.published ?? false,
+				pubDate: dto.pubDate ?? new Date(),
+				author: { id: this.authorId, name: this.authorName },
+			})
+			.returning();
+		return toPost(row);
+	}
+
+	async updatePost(id: Post['id'], dto: UpdatePostDto): Promise<Post> {
 		const slug = dto.title && !dto.slug ? slugify(dto.title).toLocaleLowerCase() : dto.slug;
 
-		Object.assign(post, dto, {
-			...(slug !== undefined && { slug }),
-			updatedAt: new Date(),
-		});
+		const [row] = await this.db
+			.update(posts)
+			.set({
+				...dto,
+				...(slug !== undefined && { slug }),
+				updatedAt: new Date(),
+			})
+			.where(eq(posts.id, id))
+			.returning();
 
-		return post;
-	}
-
-	deletePost(id: Post['id']) {
-		const index = this.posts.findIndex((post) => post.id === id);
-		if (index === -1) {
+		if (!row) {
 			throw new NotFoundException('Post not found');
 		}
-
-		this.posts.splice(index, 1);
+		return toPost(row);
 	}
+
+	async deletePost(id: Post['id']): Promise<void> {
+		const result = await this.db.delete(posts).where(eq(posts.id, id)).returning({ id: posts.id });
+		if (result.length === 0) {
+			throw new NotFoundException('Post not found');
+		}
+	}
+}
+
+function toPost(row: PostRow): Post {
+	return {
+		id: row.id,
+		title: row.title,
+		slug: row.slug,
+		description: row.description,
+		content: row.content,
+		heroImage: row.heroImage ?? undefined,
+		tags: row.tags,
+		published: row.published,
+		pubDate: row.pubDate,
+		createdAt: row.createdAt,
+		updatedAt: row.updatedAt,
+		author: row.author,
+	};
 }
