@@ -4,15 +4,13 @@ import { z } from 'zod';
 export const ENV_NAMES = ['PORT', 'API_KEY'] as const;
 
 export const envSchema = z.object({
-  PORT: z.coerce.number(),
-  API_KEY: z.string().min(1),
+	PORT: z.coerce.number(),
+	API_KEY: z.string().min(1),
 });
 
 export type EnvironmentVariables = z.infer<typeof envSchema>;
 
 export const getEnvs = (): EnvironmentVariables => {
-  const raw = Object.fromEntries(
-    ENV_NAMES.map(name => [name, process.env[name]])
-  );
-  return envSchema.parse(raw);
+	const raw = Object.fromEntries(ENV_NAMES.map((name) => [name, process.env[name]]));
+	return envSchema.parse(raw);
 };
