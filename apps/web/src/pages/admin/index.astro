@@ -1,0 +1,29 @@
+---
+export const prerender = false;
+
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { PostsAdmin } from '../../components/admin/PostsAdmin';
+import { ADMIN_COOKIE } from '../../lib/adminCookie';
+
+const apiKey = Astro.cookies.get(ADMIN_COOKIE)?.value;
+if (!apiKey) {
+	return Astro.redirect('/admin/login');
+}
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title="Admin · Posts" description="Manage blog posts" />
+	</head>
+	<body>
+		<Header />
+		<main style="max-width: 960px; margin: 0 auto; padding: 1rem;">
+			<h1>Admin</h1>
+			<PostsAdmin client:load />
+		</main>
+		<Footer />
+	</body>
+</html>

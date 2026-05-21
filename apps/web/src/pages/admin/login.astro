@@ -1,0 +1,29 @@
+---
+export const prerender = false;
+
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { LoginForm } from '../../components/admin/LoginForm';
+import { ADMIN_COOKIE } from '../../lib/adminCookie';
+
+if (Astro.cookies.get(ADMIN_COOKIE)?.value) {
+	return Astro.redirect('/admin');
+}
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title="Admin · Login" description="Admin login" />
+	</head>
+	<body>
+		<Header />
+		<main style="max-width: 480px; margin: 0 auto; padding: 1rem;">
+			<h1>Admin login</h1>
+			<p>Enter the API key to manage posts.</p>
+			<LoginForm client:load />
+		</main>
+		<Footer />
+	</body>
+</html>
