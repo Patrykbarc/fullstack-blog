@@ -3,7 +3,7 @@ import baseConfig, { defineConfig, globals, tseslint } from '@monorepo/eslint-co
 
 export default defineConfig(
 	{
-		ignores: ['eslint.config.mjs', '.prettierrc.mjs', 'dist/**'],
+		ignores: ['eslint.config.mjs', '.prettierrc.mjs', 'dist/**', 'src/constants/env.generated.ts'],
 	},
 	...baseConfig,
 	...tseslint.configs.recommendedTypeChecked,

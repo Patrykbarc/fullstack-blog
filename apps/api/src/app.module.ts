@@ -4,9 +4,14 @@ import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
 import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { ConfigModule } from '@nestjs/config';
+import { envSchema } from './constants/env.generated';
 
 @Module({
-	imports: [PostsModule],
+	imports: [
+		PostsModule,
+		ConfigModule.forRoot({ isGlobal: true, validate: (raw) => envSchema.parse(raw) }),
+	],
 	controllers: [AppController],
 	providers: [AppService, { provide: APP_PIPE, useClass: ZodValidationPipe }],
 })
