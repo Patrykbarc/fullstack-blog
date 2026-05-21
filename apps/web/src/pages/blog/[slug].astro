@@ -1,0 +1,35 @@
+---
+export const prerender = false;
+
+import { marked } from 'marked';
+import BlogPost from '../../layouts/BlogPost.astro';
+import { ApiError, postsApi } from '../../lib/api';
+
+const slug = Astro.params.slug;
+if (!slug) {
+	return Astro.redirect('/blog');
+}
+
+let post;
+try {
+	post = await postsApi.getBySlug(slug);
+} catch (err) {
+	if (err instanceof ApiError && err.status === 404) {
+		return new Response('Not found', { status: 404 });
+	}
+	throw err;
+}
+
+const contentHtml = await marked.parse(post.content);
+Astro.response.headers.set('cache-control', 'public, max-age=60, s-maxage=60');
+---
+
+<BlogPost
+	title={post.title}
+	description={post.description}
+	pubDate={post.pubDate}
+	updatedDate={post.updatedAt ?? undefined}
+	heroImage={post.heroImage}
+>
+	<Fragment set:html={contentHtml} />
+</BlogPost>
