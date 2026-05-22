@@ -9,9 +9,6 @@ import { UpdatePostDto } from './dto/updatePost.dto';
 
 @Injectable()
 export class PostsService {
-	private readonly authorId = 'fb037077-5289-4149-a68f-1fa7af3e3c2e';
-	private readonly authorName = 'Patryk';
-
 	constructor(@Inject(DB) private readonly db: Db) {}
 
 	async getAllPosts(): Promise<Post[]> {
@@ -43,8 +40,8 @@ export class PostsService {
 		return toPost(row);
 	}
 
-	async createPost(dto: CreatePostDto): Promise<Post> {
-		const slug = dto.slug ?? slugify(dto.title).toLocaleLowerCase();
+	async createPost(dto: CreatePostDto, author: { id: string; name: string }): Promise<Post> {
+		const slug = dto.slug ?? toSlug(dto.title);
 		const [row] = await this.db
 			.insert(posts)
 			.values({
@@ -56,14 +53,14 @@ export class PostsService {
 				tags: dto.tags ?? [],
 				published: dto.published ?? false,
 				pubDate: dto.pubDate ?? new Date(),
-				author: { id: this.authorId, name: this.authorName },
+				author,
 			})
 			.returning();
 		return toPost(row);
 	}
 
 	async updatePost(id: Post['id'], dto: UpdatePostDto): Promise<Post> {
-		const slug = dto.title && !dto.slug ? slugify(dto.title).toLocaleLowerCase() : dto.slug;
+		const slug = dto.title && !dto.slug ? toSlug(dto.title) : dto.slug;
 
 		const [row] = await this.db
 			.update(posts)
@@ -87,6 +84,10 @@ export class PostsService {
 			throw new NotFoundException('Post not found');
 		}
 	}
+}
+
+function toSlug(title: string): string {
+	return slugify(title).toLocaleLowerCase();
 }
 
 function toPost(row: PostRow): Post {

@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { DB } from '../db/db.module';
@@ -10,11 +9,7 @@ describe('PostsController', () => {
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [PostsController],
-			providers: [
-				PostsService,
-				{ provide: DB, useValue: {} },
-				{ provide: ConfigService, useValue: { get: () => 'test-key' } },
-			],
+			providers: [PostsService, { provide: DB, useValue: {} }],
 		}).compile();
 
 		controller = module.get<PostsController>(PostsController);

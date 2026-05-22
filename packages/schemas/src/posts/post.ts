@@ -1,6 +1,7 @@
 import z from 'zod';
 
 const id = z.string().uuid();
+const userId = z.string().min(1);
 
 export const postSchema = z.object({
 	id,
@@ -45,7 +46,7 @@ export const postSchema = z.object({
 	updatedAt: z.coerce.date().nullable(),
 
 	author: z.object({
-		id,
+		id: userId,
 		name: z.string().trim().min(1),
 	}),
 });

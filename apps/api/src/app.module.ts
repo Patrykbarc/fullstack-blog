@@ -8,7 +8,6 @@ import { LoggerMiddleware } from './logger/logger.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { envSchema } from './constants/env.generated';
 import { DbModule } from './db/db.module';
-import { ApiKeyController } from './api-key/api-key.controller';
 
 @Module({
 	imports: [
@@ -16,7 +15,7 @@ import { ApiKeyController } from './api-key/api-key.controller';
 		DbModule,
 		PostsModule,
 	],
-	controllers: [AppController, ApiKeyController],
+	controllers: [AppController],
 	providers: [AppService, { provide: APP_PIPE, useClass: ZodValidationPipe }],
 })
 export class AppModule implements NestModule {

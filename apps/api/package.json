@@ -24,6 +24,7 @@
 		"test:e2e": "jest --config ./test/jest-e2e.json"
 	},
 	"dependencies": {
+		"@clerk/backend": "^3.4.12",
 		"@monorepo/db": "workspace:*",
 		"@monorepo/schemas": "workspace:*",
 		"@nestjs/common": "^11.0.1",
