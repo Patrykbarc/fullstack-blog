@@ -1,105 +1,131 @@
-import { mkdirSync, existsSync, statSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
+import {
+	mkdirSync,
+	existsSync,
+	readFileSync,
+	readdirSync,
+	statSync,
+	writeFileSync,
+	type Dirent,
+} from 'fs';
+import { join, dirname, relative } from 'path';
 import type { EnvParser } from './EnvParser.js';
-import type { ConfigLoader, Config } from './ConfigLoader.js';
 import type { TemplateSync } from './TemplateSync.js';
-import { CodeGenerator } from './CodeGenerator.js';
+import { CodeGenerator, type GeneratorOptions } from './CodeGenerator.js';
+
+const IGNORED_DIRS = new Set([
+	'node_modules',
+	'dist',
+	'build',
+	'.git',
+	'.next',
+	'.turbo',
+	'coverage',
+]);
+
+const IMPORT_META_DEPS = ['astro', 'vite'];
+
+const OUTPUT_DIR = 'src/constants';
+const OUTPUT_FILE = 'env.generated.ts';
+const TYPE_NAME = 'EnvironmentVariables';
 
 export class CLI {
 	constructor(
 		private parser: EnvParser,
-		private configLoader: ConfigLoader,
 		private templateSync: TemplateSync,
 	) {}
 
-	async run(): Promise<void> {
-		const { default: inquirer } = await import('inquirer');
+	async run(root: string = process.cwd()): Promise<void> {
+		const envFiles = this.findEnvFiles(root).filter((p) => this.isProjectDir(dirname(p)));
 
-		const cwd = process.cwd();
-		const defaults = this.configLoader.load(cwd);
-
-		const answers = await inquirer.prompt<Config & { saveConfig: boolean }>([
-			{
-				type: 'input',
-				name: 'envFile',
-				message: 'Path to .env file:',
-				default: defaults.envFile,
-			},
-			{
-				type: 'input',
-				name: 'outputDir',
-				message: 'Output directory:',
-				default: defaults.outputDir,
-			},
-			{
-				type: 'input',
-				name: 'outputFile',
-				message: 'Output filename:',
-				default: defaults.outputFile,
-			},
-			{
-				type: 'list',
-				name: 'envSource',
-				message: 'Env source in getEnvs:',
-				choices: ['process.env', 'import.meta.env'],
-				default: defaults.envSource,
-			},
-			{
-				type: 'input',
-				name: 'typeName',
-				message: 'Type name:',
-				default: defaults.typeName,
-			},
-			{
-				type: 'confirm',
-				name: 'generateGetEnvs',
-				message: 'Generate getEnvs function in file?',
-				default: defaults.generateGetEnvs,
-			},
-			{
-				type: 'confirm',
-				name: 'saveConfig',
-				message: 'Save configuration to env-types.config.json?',
-				default: false,
-			},
-		]);
-
-		const { saveConfig, ...config } = answers;
-
-		if (saveConfig) {
-			this.configLoader.save(config, cwd);
+		if (envFiles.length === 0) {
+			console.log('No project .env files found under', root);
+			return;
 		}
 
-		let envPath = join(cwd, config.envFile);
-		if (existsSync(envPath) && statSync(envPath).isDirectory()) {
-			envPath = join(envPath, '.env');
+		for (const envPath of envFiles) {
+			this.processEnvFile(envPath, root);
 		}
+	}
+
+	private isProjectDir(dir: string): boolean {
+		const srcPath = join(dir, 'src');
+		return existsSync(srcPath) && statSync(srcPath).isDirectory();
+	}
+
+	private processEnvFile(envPath: string, cwd: string): void {
+		const pkgDir = dirname(envPath);
+		const envSource = this.detectEnvSource(pkgDir);
+
+		const options: GeneratorOptions = {
+			envSource,
+			typeName: TYPE_NAME,
+			generateGetEnvs: true,
+		};
+
 		const { entries } = this.parser.parseFile(envPath);
 
-		const generator = new CodeGenerator(config);
-		const code = generator.generate(entries);
-
-		const outDir = join(dirname(envPath), config.outputDir);
+		const outDir = join(pkgDir, OUTPUT_DIR);
 		if (!existsSync(outDir)) {
 			mkdirSync(outDir, { recursive: true });
 		}
 
-		const outPath = join(outDir, config.outputFile);
+		const outPath = join(outDir, OUTPUT_FILE);
+		const code = new CodeGenerator(options).generate(entries);
 		writeFileSync(outPath, code, 'utf-8');
-		const relOutPath = outPath.replace(cwd + '/', '');
-		console.log(`✅ Generated: ${relOutPath}`);
 
-		const templatePath = join(dirname(envPath), '.env.template');
+		const templatePath = join(pkgDir, '.env.template');
 		const syncResult = this.templateSync.sync(entries, templatePath);
 
-		const relTemplatePath = templatePath.replace(cwd + '/', '');
-		console.log(`✅ Synced: ${relTemplatePath}`);
+		const label = relative(cwd, pkgDir) || '.';
+		const counts = `+${syncResult.added.length} / -${syncResult.removed.length}`;
+		console.log(`✅ ${label} (${envSource}) → ${OUTPUT_DIR}/${OUTPUT_FILE} (${counts})`);
+	}
 
-		if (syncResult.added.length > 0) {
-			console.log(`   Added: ${syncResult.added.join(', ')}`);
+	private findEnvFiles(root: string): string[] {
+		const results: string[] = [];
+		this.walk(root, results);
+		results.sort();
+		return results;
+	}
+
+	private walk(dir: string, results: string[]): void {
+		let entries: Dirent[];
+		try {
+			entries = readdirSync(dir, { withFileTypes: true }) as Dirent[];
+		} catch {
+			return;
 		}
-		if (syncResult.removed.length > 0) {
-			console.log(`   Removed: ${syncResult.removed.join(', ')}`);
+
+		for (const entry of entries) {
+			const fullPath = join(dir, entry.name);
+			if (entry.isDirectory()) {
+				if (IGNORED_DIRS.has(entry.name) || entry.name.startsWith('.')) continue;
+				this.walk(fullPath, results);
+			} else if (entry.isFile() && entry.name === '.env') {
+				results.push(fullPath);
+			}
 		}
+	}
+
+	private detectEnvSource(pkgDir: string): 'process.env' | 'import.meta.env' {
+		const pkgPath = join(pkgDir, 'package.json');
+		if (!existsSync(pkgPath) || !statSync(pkgPath).isFile()) {
+			return 'process.env';
+		}
+
+		let pkg: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+		try {
+			pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+		} catch {
+			return 'process.env';
+		}
+
+		const allDeps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
+		for (const dep of Object.keys(allDeps)) {
+			if (IMPORT_META_DEPS.includes(dep) || dep.startsWith('@vitejs/')) {
+				return 'import.meta.env';
+			}
+		}
+		return 'process.env';
 	}
 }

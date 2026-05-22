@@ -1,18 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { CodeGenerator } from '../src/CodeGenerator.js';
+import { CodeGenerator, type GeneratorOptions } from '../src/CodeGenerator.js';
 import type { EnvEntry } from '../src/EnvParser.js';
-import type { Config } from '../src/ConfigLoader.js';
 
-const defaultConfig: Config = {
-	envFile: '.env',
-	outputDir: 'src/constants',
-	outputFile: 'env.generated.ts',
+const defaultOptions: GeneratorOptions = {
 	envSource: 'process.env',
 	typeName: 'EnvironmentVariables',
 	generateGetEnvs: false,
 };
 
-const gen = (config: Partial<Config> = {}) => new CodeGenerator({ ...defaultConfig, ...config });
+const gen = (options: Partial<GeneratorOptions> = {}) =>
+	new CodeGenerator({ ...defaultOptions, ...options });
 
 describe('CodeGenerator.entryToZodExpression', () => {
 	it('required string → z.string().min(1)', () => {

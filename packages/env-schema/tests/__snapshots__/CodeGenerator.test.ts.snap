@@ -7,10 +7,10 @@ import { z } from 'zod';
 export const ENV_NAMES = ['API_URL', 'DB_PORT', 'DEBUG', 'NODE_ENV'] as const;
 
 export const envSchema = z.object({
-  API_URL: z.string().min(1),
-  DB_PORT: z.coerce.number(),
-  DEBUG: z.enum(['true', 'false']).transform(v => v === 'true'),
-  NODE_ENV: z.string().default('production'),
+	API_URL: z.string().min(1),
+	DB_PORT: z.coerce.number(),
+	DEBUG: z.enum(['true', 'false']).transform(v => v === 'true'),
+	NODE_ENV: z.string().default('production'),
 });
 
 export type EnvironmentVariables = z.infer<typeof envSchema>;

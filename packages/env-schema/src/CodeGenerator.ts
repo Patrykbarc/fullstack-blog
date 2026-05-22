@@ -1,8 +1,13 @@
 import type { EnvEntry } from './EnvParser.js';
-import type { Config } from './ConfigLoader.js';
+
+export interface GeneratorOptions {
+	envSource: 'process.env' | 'import.meta.env';
+	typeName: string;
+	generateGetEnvs: boolean;
+}
 
 export class CodeGenerator {
-	constructor(private config: Config) {}
+	constructor(private options: GeneratorOptions) {}
 
 	generate(entries: EnvEntry[]): string {
 		const parts = [
@@ -16,7 +21,7 @@ export class CodeGenerator {
 			this.buildTypeAlias(),
 		];
 
-		if (this.config.generateGetEnvs) {
+		if (this.options.generateGetEnvs) {
 			parts.push('', this.buildGetEnvs(entries));
 		}
 
@@ -33,24 +38,22 @@ export class CodeGenerator {
 	}
 
 	private buildSchema(entries: EnvEntry[]): string {
-		const lines = entries.map((e) => `  ${e.key}: ${this.entryToZodExpression(e)},`);
+		const lines = entries.map((e) => `\t${e.key}: ${this.entryToZodExpression(e)},`);
 		return `export const envSchema = z.object({\n${lines.join('\n')}\n});`;
 	}
 
 	private buildTypeAlias(): string {
-		return `export type ${this.config.typeName} = z.infer<typeof envSchema>;`;
+		return `export type ${this.options.typeName} = z.infer<typeof envSchema>;`;
 	}
 
 	private buildGetEnvs(_entries: EnvEntry[]): string {
-		const source = this.config.envSource;
+		const source = this.options.envSource;
 		const envAccess = source === 'import.meta.env' ? 'import.meta.env[name]' : 'process.env[name]';
 
 		return [
-			`export const getEnvs = (): ${this.config.typeName} => {`,
-			`  const raw = Object.fromEntries(`,
-			`    ENV_NAMES.map(name => [name, ${envAccess}])`,
-			`  );`,
-			`  return envSchema.parse(raw);`,
+			`export const getEnvs = (): ${this.options.typeName} => {`,
+			`\tconst raw = Object.fromEntries(ENV_NAMES.map((name) => [name, ${envAccess}]));`,
+			`\treturn envSchema.parse(raw);`,
 			`};`,
 		].join('\n');
 	}

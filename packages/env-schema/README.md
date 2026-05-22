@@ -1,29 +1,47 @@
 # @monorepo/env-schema
 
-Generates a typed, Zod-validated TypeScript file from your `.env`. Run once to get autocomplete, runtime validation, and a synced `.env.template` — all from a single command.
+Recursively generates typed, Zod-validated TypeScript files from every `.env` in the monorepo. One command, zero config — keeps every package's `env.generated.ts` and `.env.template` in sync with its `.env`.
 
 ## Usage
 
-From any package in the monorepo that depends on `@monorepo/env-schema`:
+From the repo root (or anywhere in the monorepo):
 
 ```bash
 pnpm exec env-schema
 ```
 
-An interactive wizard opens, pre-filled with values from `env-types.config.json` (if it exists):
+The CLI walks the working directory recursively, finds every `.env` whose folder contains a `src/` directory, and for each one:
+
+- writes `src/constants/env.generated.ts`
+- syncs `.env.template` next to the `.env`
+
+Output:
 
 ```
-? Path to .env file: (.env)
-? Output directory: (src/constants)
-? Output filename: (env.generated.ts)
-? Env source in getEnvs: (process.env)
-? Type name: (EnvironmentVariables)
-? Generate getEnvs function in file? (No)
-? Save configuration to env-types.config.json? (No)
-
-✅ Generated: src/constants/env.generated.ts
-✅ Synced: .env.template
+✅ apps/api (process.env) → src/constants/env.generated.ts (+0 / -0)
+✅ apps/web (import.meta.env) → src/constants/env.generated.ts (+1 / -0)
+✅ packages/db (process.env) → src/constants/env.generated.ts (+0 / -0)
 ```
+
+Ignored: `node_modules`, `dist`, `build`, `.git`, `.next`, `.turbo`, `coverage`, and any directory whose name starts with `.`.
+
+## envSource detection
+
+For each `.env`, the CLI reads the neighboring `package.json`:
+
+- contains `astro`, `vite`, or any `@vitejs/*` package → `import.meta.env`
+- everything else → `process.env`
+
+This is the only per-project setting — every other generator option is fixed (see below).
+
+## Fixed defaults
+
+| Field             | Value                  |
+| ----------------- | ---------------------- |
+| `outputDir`       | `src/constants`        |
+| `outputFile`      | `env.generated.ts`     |
+| `typeName`        | `EnvironmentVariables` |
+| `generateGetEnvs` | `true`                 |
 
 ## Generated output
 
@@ -53,11 +71,16 @@ export const envSchema = z.object({
 });
 
 export type EnvironmentVariables = z.infer<typeof envSchema>;
+
+export const getEnvs = (): EnvironmentVariables => {
+	const raw = Object.fromEntries(ENV_NAMES.map((name) => [name, process.env[name]]));
+	return envSchema.parse(raw);
+};
 ```
 
 ## Type annotations
 
-Use comments directly above a variable to override inferred types:
+Comments directly above a variable override the inferred type:
 
 ```ini
 # @type number
@@ -87,61 +110,11 @@ Annotations are cleared by blank lines — they apply only to the immediately fo
 | anything else    | `string`           |
 | _(empty)_        | `string`, optional |
 
-## Configuration file
-
-Save settings to `env-types.config.json` (say yes in the wizard, or create manually):
-
-```json
-{
-	"envFile": ".env",
-	"outputDir": "src/lib/env",
-	"outputFile": "env.generated.ts",
-	"envSource": "import.meta.env",
-	"typeName": "Env",
-	"generateGetEnvs": true
-}
-```
-
-Or use `defineConfig` in a TypeScript config file:
-
-```typescript
-// env-types.config.ts
-import { defineConfig } from '@monorepo/env-schema';
-
-export default defineConfig({
-	envFile: '.env',
-	outputDir: 'src/lib/env',
-	envSource: 'import.meta.env',
-	typeName: 'Env',
-	generateGetEnvs: true,
-});
-```
-
-### Config options
-
-| Option            | Default                  | Description                                      |
-| ----------------- | ------------------------ | ------------------------------------------------ |
-| `envFile`         | `'.env'`                 | Path to source `.env` file                       |
-| `outputDir`       | `'src/constants'`        | Output directory                                 |
-| `outputFile`      | `'env.generated.ts'`     | Output filename                                  |
-| `envSource`       | `'process.env'`          | How env is accessed in `getEnvs`                 |
-| `typeName`        | `'EnvironmentVariables'` | Name of the exported type                        |
-| `generateGetEnvs` | `false`                  | Include `getEnvs` function in the generated file |
-
 ## Runtime usage
 
-### Option A — generate `getEnvs` in the file
+### Option A — use the generated `getEnvs`
 
-Set `generateGetEnvs: true` in config. The generated file will include:
-
-```typescript
-export const getEnvs = (): EnvironmentVariables => {
-	const raw = Object.fromEntries(ENV_NAMES.map((name) => [name, process.env[name]]));
-	return envSchema.parse(raw);
-};
-```
-
-Then use it:
+The generated file already exports `getEnvs`:
 
 ```typescript
 import { getEnvs } from './constants/env.generated';

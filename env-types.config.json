@@ -1,8 +1,0 @@
-{
-  "envFile": "/apps/api",
-  "outputDir": "src/constants",
-  "outputFile": "env.generated.ts",
-  "envSource": "process.env",
-  "typeName": "EnvironmentVariables",
-  "generateGetEnvs": true
-}
