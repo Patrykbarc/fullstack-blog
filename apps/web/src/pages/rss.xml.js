@@ -1,11 +1,11 @@
 import rss from '@astrojs/rss';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
-import { postsApi } from '../lib/api';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../constants/consts';
+import { getPosts } from '../services/post.service';
 
 export const prerender = false;
 
 export async function GET(context) {
-	const posts = await postsApi.list();
+	const posts = await getPosts();
 	return rss({
 		title: SITE_TITLE,
 		description: SITE_DESCRIPTION,

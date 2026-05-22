@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import type { CreatePost, Post, UpdatePost } from '@monorepo/schemas';
-import { ApiError, postsApi } from '../../lib/api';
+import { SignOutButton } from '@clerk/astro/react';
+import { ApiError } from '../../lib/apiClient';
+import { createPost, deletePost, getPosts, updatePost } from '../../services/post.service';
 import { PostForm } from './PostForm';
 import { QueryProvider } from './QueryProvider';
 
@@ -11,61 +13,42 @@ function Inner() {
 	const qc = useQueryClient();
 	const [mode, setMode] = useState<Mode>({ kind: 'list' });
 	const [error, setError] = useState<string | null>(null);
+	const handleError = (err: unknown) => setError(formatError(err));
 
 	const postsQuery = useQuery({
 		queryKey: ['posts'],
-		queryFn: () => postsApi.list(),
+		queryFn: () => getPosts(),
+		staleTime: 30_000,
+		refetchOnWindowFocus: false,
 	});
 
 	const createMut = useMutation({
-		mutationFn: async (body: CreatePost) => {
-			const res = await fetch('/api/posts', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify(body),
-			});
-			if (!res.ok) throw new ApiError(res.status, await res.text());
-			return (await res.json()) as Post;
-		},
+		mutationFn: (body: CreatePost) => createPost(body),
 		onSuccess: () => {
 			void qc.invalidateQueries({ queryKey: ['posts'] });
 			setMode({ kind: 'list' });
 			setError(null);
 		},
-		onError: (err: unknown) => setError(formatError(err)),
+		onError: handleError,
 	});
 
 	const updateMut = useMutation({
-		mutationFn: async ({ id, body }: { id: string; body: UpdatePost }) => {
-			const res = await fetch(`/api/posts/${id}`, {
-				method: 'PATCH',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify(body),
-			});
-			if (!res.ok) throw new ApiError(res.status, await res.text());
-			return (await res.json()) as Post;
-		},
+		mutationFn: ({ id, body }: { id: string; body: UpdatePost }) => updatePost(id, body),
 		onSuccess: () => {
 			void qc.invalidateQueries({ queryKey: ['posts'] });
 			setMode({ kind: 'list' });
 			setError(null);
 		},
-		onError: (err: unknown) => setError(formatError(err)),
+		onError: handleError,
 	});
 
 	const deleteMut = useMutation({
-		mutationFn: async (id: string) => {
-			const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-			if (!res.ok && res.status !== 204) throw new ApiError(res.status, await res.text());
+		mutationFn: (id: string) => deletePost(id),
+		onSuccess: (_data, id) => {
+			qc.setQueryData<Post[]>(['posts'], (prev) => prev?.filter((p) => p.id !== id));
 		},
-		onSuccess: () => void qc.invalidateQueries({ queryKey: ['posts'] }),
-		onError: (err: unknown) => setError(formatError(err)),
+		onError: handleError,
 	});
-
-	const logout = async () => {
-		await fetch('/api/admin/logout', { method: 'POST' });
-		window.location.href = '/admin/login';
-	};
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -76,7 +59,9 @@ function Inner() {
 					{mode.kind === 'list' && (
 						<button onClick={() => setMode({ kind: 'create' })}>New post</button>
 					)}
-					<button onClick={logout}>Log out</button>
+					<SignOutButton redirectUrl="/sign-in">
+						<button>Log out</button>
+					</SignOutButton>
 				</div>
 			</header>
 
@@ -152,8 +137,10 @@ function Inner() {
 }
 
 function formatError(err: unknown): string {
-	if (err instanceof ApiError)
-		return `${err.status}: ${typeof err.body === 'string' ? err.body : ''}`;
+	if (err instanceof ApiError) {
+		const body = typeof err.body === 'string' ? err.body : JSON.stringify(err.body);
+		return body ? `${err.status}: ${body}` : `${err.status}`;
+	}
 	if (err instanceof Error) return err.message;
 	return 'Unknown error';
 }

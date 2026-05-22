@@ -1,5 +1,6 @@
 // @ts-check
 
+import clerk from '@clerk/astro';
 import mdx from '@astrojs/mdx';
 import node from '@astrojs/node';
 import react from '@astrojs/react';
@@ -9,9 +10,9 @@ import { defineConfig, fontProviders } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://example.com',
-	output: 'static',
+	output: 'server',
 	adapter: node({ mode: 'standalone' }),
-	integrations: [mdx(), react(), sitemap()],
+	integrations: [clerk(), mdx(), react(), sitemap()],
 	fonts: [
 		{
 			provider: fontProviders.local(),

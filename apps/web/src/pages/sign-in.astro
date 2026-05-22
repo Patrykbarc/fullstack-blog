@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+
+// aliased: bare `SignIn` clashes with astro check's global declaration on this filename (ts2440)
+import { SignIn as ClerkSignIn } from '@clerk/astro/components';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title="Sign in" description="Sign in" />
+	</head>
+	<body>
+		<Header />
+		<main style="max-width: 480px; margin: 2rem auto; padding: 1rem;">
+			<ClerkSignIn path="/sign-in" routing="path" signUpUrl="/" forceRedirectUrl="/admin" />
+		</main>
+		<Footer />
+	</body>
+</html>

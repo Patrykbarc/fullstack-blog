@@ -2,15 +2,9 @@
 export const prerender = false;
 
 import BaseHead from '../../components/BaseHead.astro';
-import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
 import { PostsAdmin } from '../../components/admin/PostsAdmin';
-import { ADMIN_COOKIE } from '../../lib/adminCookie';
-
-const apiKey = Astro.cookies.get(ADMIN_COOKIE)?.value;
-if (!apiKey) {
-	return Astro.redirect('/admin/login');
-}
 ---
 
 <!doctype html>
